@@ -20,28 +20,57 @@ class Calesync extends React.Component {
   constructor() {
       super();
 
-      /*firebase
-          .firestore()
-          .collection('smoothbrains')
-          .get()
-          .then(c => {
-              console.log(c.docs[0].data());
-          });*/
+      this.state = {
+        events: []
+      }; 
+
+      this.handleDateChange = this.handleDateChange.bind(this);
   }
 
-  state = {
-      date: new Date(),
+  formatLocalISO(date) {
+    var year = date.getFullYear();
+    var month = ("0" + (date.getMonth() + 1)).slice(-2);
+    var day = ("0" + date.getDate()).slice(-2);
+    var hours = ("0" + date.getHours()).slice(-2);
+    var minutes = ("0" + date.getMinutes()).slice(-2);
+    var seconds = ("0" + date.getSeconds()).slice(-2);
+    var ms = ("0" + date.getMilliseconds()).slice(-3)
+
+    return [year, '-', month, '-', day, 'T', hours, ':', minutes, ':', seconds, ".", ms].join('');
   }
 
-  onChange = date => this.setState({ date })
+  async handleDateChange(selectedDate) {   
+    var startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    var endDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 24);
+
+    var response = await fetch(`user/events/start/${this.formatLocalISO(startDate)}/end/${this.formatLocalISO(endDate)}`);
+    var eventList = await response.json();
+
+    this.setState({
+        events: eventList.events
+    });
+  }
 
   render() {
       return (
           <div>
-              <Calendar
-                  onChange={this.onChange}
-                  value={this.state.date}
-              />
+              <div style={{display: "inline-block"}}>
+                <Calendar
+                    onChange={this.handleDateChange}
+                    value={this.state.date}
+                />
+              </div>
+              <div style={{marginTop: "50px"}}>
+                {
+                    this.state.events.map((e, i) => 
+                        <div key={i} style={{display: "inline-block", width: "200px", height: "200px", border: "2px solid blue", verticalAlign: "top", marginRight: "10px", padding: "10px"}}>
+                            <p><b>{e.summary}</b></p>
+                            <p>Start: {new Date(e.start).toLocaleString()}</p>
+                            <p>End: {new Date(e.end).toLocaleString()}</p>
+                        </div>
+                    )
+                }
+              </div>
           </div>
       );
   }

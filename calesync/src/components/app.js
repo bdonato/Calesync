@@ -1,51 +1,58 @@
 import React from 'react';
-import firebase from '../firebase.js';
+import { withRouter } from "react-router-dom";
 
-class App extends React.Component {
-  render() {
-    return (
-      <div>
-        <h1>Calensync</h1>
-        <AuthButton />
-      </div>
-    )
-  }
-}
+class Home extends React.Component{
+    constructor(){
+      super();
+      this.state = { 
+        allUsers: []
+      };
 
-class AuthButton extends React.Component{
-    async authorizeUser(){
+      this.selectUser = this.selectUser.bind(this);
+    }
 
-      /*var response = await fetch("https://app.cronofy.com/oauth/authorize?client_id=fLr2DeCpC3ifPrrUqbMADt-wqCFS1AQW&redirect_uri=https://www.google.com&response_type=code&scope=read_events",
-        { headers: {'Content-Type': 'application/json'}}
-      );
+    async componentDidMount() {
+      var response = await fetch('users');
+      var users = await response.json();
 
-      console.log(await response.json())*/
+      this.setState({
+        allUsers: users
+      });
+    }
+
+    async addNewUser() {
       window.location.href = "https://app.cronofy.com/oauth/authorize?client_id=fLr2DeCpC3ifPrrUqbMADt-wqCFS1AQW&redirect_uri=http://localhost:3000/consent&response_type=code&scope=read_events";
-
-
-      //alert("Auth with Cronofy Here");
-      /*firebase //change this to auth
-        .firestore()
-        .collection('smoothbrains')
-        .where("accountId", "==", "acc_5de82ddefc1fe1008d17879e")
-        .get()
-        .then(c => {          
-            console.log(c.docs[0].data());
-            c.forEach(a => console.log(a.data()));
-        });*/
-            
     }
-    render() {
-        return(
-            <div>
-                <button onClick={this.authorizeUser} > Authorize </button>
-            </div>
 
-        )
+    async selectUser(user) {
+      await fetch('updateCurrentUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAccountId: user.account.account_id }),
+      });
+
+      this.props.history.push("/calendar");
+    }
+
+    render() {
+      return(
+          <div>
+            <div>
+              <h3>Select a User</h3>
+              {
+                this.state.allUsers.map((u, i) => <button key={i} onClick={() => this.selectUser(u)}>{u.account.name}</button>)
+              }
+            </div>
+            <br/>
+            <h3>or</h3>
+            <button onClick={this.addNewUser} > Add User/Account </button>
+          </div>
+
+      )
     }
 }
 
 
 
 
-export default App
+export default Home
