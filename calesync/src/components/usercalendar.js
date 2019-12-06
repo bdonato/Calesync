@@ -20,13 +20,13 @@ class Calesync extends React.Component {
   constructor() {
       super();
 
-      firebase
+      /*firebase
           .firestore()
           .collection('smoothbrains')
           .get()
           .then(c => {
               console.log(c.docs[0].data());
-          });
+          });*/
   }
 
   state = {
